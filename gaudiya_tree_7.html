@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gaudiya Vaishnava Lineage Tree</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0d1117;color:#e6edf3;overflow:hidden;height:100vh;}
+
+/* ── TOOLBAR ── */
+#toolbar{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  background:rgba(13,17,23,0.98);border-bottom:1px solid #30363d;
+  padding:7px 14px;display:flex;align-items:center;gap:10px;flex-wrap:nowrap;
+}
+#toolbar h1{font-size:14px;font-weight:600;color:#f0c060;white-space:nowrap;flex-shrink:0;}
+.tb-sep{width:1px;height:22px;background:#30363d;flex-shrink:0;}
+.tb-btn{
+  background:#21262d;border:1px solid #30363d;color:#c9d1d9;
+  padding:4px 10px;border-radius:5px;cursor:pointer;font-size:11px;white-space:nowrap;flex-shrink:0;
+  transition:background 0.12s,border-color 0.12s;
+}
+.tb-btn:hover{background:#30363d;border-color:#484f58;}
+.tb-btn.active{background:#1a3a6e;border-color:#388bfd;color:#79c0ff;}
+#search-wrap{position:relative;flex-shrink:0;}
+#search-box{
+  background:#21262d;border:1px solid #30363d;color:#c9d1d9;
+  padding:4px 28px 4px 9px;border-radius:5px;font-size:11px;width:170px;outline:none;
+  transition:border-color 0.12s;
+}
+#search-box:focus{border-color:#388bfd;}
+#search-clear{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:#8b949e;cursor:pointer;font-size:13px;line-height:1;
+  display:none;padding:0;
+}
+#search-nav{display:none;align-items:center;gap:4px;flex-shrink:0;}
+#search-count{font-size:11px;color:#8b949e;white-space:nowrap;}
+.nav-btn{
+  background:#21262d;border:1px solid #30363d;color:#c9d1d9;
+  width:22px;height:22px;border-radius:4px;cursor:pointer;font-size:11px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.nav-btn:hover{background:#30363d;}
+#zoom-info{font-size:10px;color:#8b949e;white-space:nowrap;flex-shrink:0;margin-left:auto;}
+
+/* ── LEGEND PANEL ── */
+#legend-btn{flex-shrink:0;}
+#legend-panel{
+  position:fixed;top:44px;right:0;z-index:150;
+  background:#161b22;border-left:1px solid #30363d;border-bottom:1px solid #30363d;
+  padding:12px 14px;border-radius:0 0 0 8px;
+  display:none;min-width:200px;
+}
+#legend-panel.open{display:block;}
+#legend-panel h3{font-size:11px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+.leg-section{margin-bottom:12px;}
+.leg-section:last-child{margin-bottom:0;}
+.leg-item{
+  display:flex;align-items:center;gap:8px;font-size:11px;color:#c9d1d9;
+  padding:4px 8px;border-radius:5px;cursor:pointer;margin-bottom:2px;
+  transition:background 0.1s;border:1px solid transparent;
+}
+.leg-item:hover{background:#21262d;}
+.leg-item.active-filter{background:#1a3a6e;border-color:#388bfd;}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.leg-line-svg{flex-shrink:0;}
+.leg-all{
+  margin-top:8px;font-size:10px;color:#58a6ff;cursor:pointer;text-align:center;
+  padding:3px;border-radius:4px;
+}
+.leg-all:hover{background:#21262d;}
+
+/* ── CANVAS ── */
+#canvas-wrap{
+  position:fixed;top:44px;left:0;right:0;bottom:0;
+  overflow:hidden;cursor:grab;
+}
+#canvas-wrap.dragging{cursor:grabbing;}
+svg{position:absolute;top:0;left:0;transform-origin:0 0;}
+
+/* ── ERA LABELS (fixed left side) ── */
+#era-labels{
+  position:fixed;left:0;top:44px;bottom:0;z-index:100;
+  pointer-events:none;overflow:hidden;width:0;
+}
+.era-label-fixed{
+  position:absolute;left:0;
+  font-size:9px;font-style:italic;color:#4a535e;
+  white-space:nowrap;padding:2px 6px;
+  background:rgba(13,17,23,0.75);border-right:1px solid #21262d;
+}
+
+/* ── DETAIL PANEL ── */
+#detail-panel{
+  position:fixed;right:0;top:44px;bottom:0;z-index:180;
+  width:300px;background:#161b22;border-left:1px solid #30363d;
+  display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform 0.2s ease;
+}
+#detail-panel.open{transform:translateX(0);}
+#detail-header{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  padding:14px 16px 10px;border-bottom:1px solid #30363d;flex-shrink:0;
+}
+#detail-name{font-size:15px;font-weight:600;color:#f0c060;line-height:1.3;flex:1;margin-right:8px;}
+#detail-close{
+  background:none;border:none;color:#8b949e;font-size:18px;cursor:pointer;
+  padding:0;line-height:1;flex-shrink:0;margin-top:1px;
+}
+#detail-close:hover{color:#e6edf3;}
+#detail-dates{padding:4px 16px 8px;font-size:11px;color:#8b949e;border-bottom:1px solid #30363d;flex-shrink:0;}
+#detail-cat{
+  display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;
+  margin-left:6px;vertical-align:middle;
+}
+#detail-body{flex:1;overflow-y:auto;padding:14px 16px;}
+#detail-desc{font-size:12px;color:#c9d1d9;line-height:1.7;margin-bottom:16px;}
+#detail-connections h4{font-size:11px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+.conn-group{margin-bottom:10px;}
+.conn-label{font-size:10px;color:#6a737d;margin-bottom:4px;}
+.conn-item{
+  font-size:11px;color:#79c0ff;cursor:pointer;padding:3px 6px;border-radius:4px;
+  display:block;
+}
+.conn-item:hover{background:#21262d;color:#a5d3ff;}
+
+/* ── NODES ── */
+.node-group{cursor:pointer;}
+.dim{opacity:0.08 !important;}
+.highlight rect{filter:drop-shadow(0 0 7px rgba(240,192,96,0.85));}
+.node-group rect{transition:opacity 0.15s;}
+
+/* ── MINIMAP ── */
+#minimap{
+  position:fixed;bottom:14px;right:14px;z-index:160;
+  background:rgba(13,17,23,0.9);border:1px solid #30363d;border-radius:6px;
+  overflow:hidden;cursor:pointer;
+}
+#minimap canvas{display:block;}
+#minimap-viewport{
+  position:absolute;border:1.5px solid #388bfd;pointer-events:none;
+  box-shadow:0 0 0 1000px rgba(0,0,0,0.25);
+}
+
+/* ── KEYBOARD HINT ── */
+#kbd-hint{
+  position:fixed;bottom:14px;left:14px;z-index:160;
+  font-size:9px;color:#3a4450;line-height:1.8;pointer-events:none;
+}
+kbd{
+  background:#21262d;border:1px solid #30363d;border-radius:3px;
+  padding:0 3px;font-size:9px;color:#6a737d;
+}
+
+/* ── TOOLTIP (hover only, no click) ── */
+#tooltip{
+  position:fixed;z-index:190;background:#1c2128;border:1px solid #30363d;
+  border-radius:7px;padding:7px 10px;max-width:220px;pointer-events:none;
+  opacity:0;transition:opacity 0.1s;font-size:11px;white-space:nowrap;
+}
+
+/* ── SCROLLBAR ── */
+#detail-body::-webkit-scrollbar{width:4px;}
+#detail-body::-webkit-scrollbar-track{background:transparent;}
+#detail-body::-webkit-scrollbar-thumb{background:#30363d;border-radius:2px;}
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <h1>Gaudiya Vaishnava Lineage</h1>
+  <div class="tb-sep"></div>
+  <div id="search-wrap">
+    <input type="text" id="search-box" placeholder="Search names…" autocomplete="off" aria-label="Search">
+    <button id="search-clear" title="Clear search">×</button>
+  </div>
+  <div id="search-nav">
+    <span id="search-count"></span>
+    <button class="nav-btn" id="prev-match" title="Previous (Shift+Enter)">↑</button>
+    <button class="nav-btn" id="next-match" title="Next (Enter)">↓</button>
+  </div>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" id="legend-btn" onclick="toggleLegend()">Legend ▾</button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" onclick="resetView()">Reset view</button>
+  <button class="tb-btn" onclick="zoom(1.25)">＋</button>
+  <button class="tb-btn" onclick="zoom(0.8)">－</button>
+  <span id="zoom-info">100%</span>
+</div>
+
+<!-- Legend panel -->
+<div id="legend-panel">
+  <div class="leg-section">
+    <h3>Branch / Era</h3>
+    <div class="leg-item" data-filter="panca"   onclick="filterCat('panca')">  <div class="leg-dot" style="background:#f0c060"></div>Panca-tattva</div>
+    <div class="leg-item" data-filter="goswami" onclick="filterCat('goswami')"><div class="leg-dot" style="background:#3fb950"></div>Six Goswamis</div>
+    <div class="leg-item" data-filter="nitai"   onclick="filterCat('nitai')">  <div class="leg-dot" style="background:#58a6ff"></div>Nityananda branch</div>
+    <div class="leg-item" data-filter="advaita" onclick="filterCat('advaita')"><div class="leg-dot" style="background:#d2a8ff"></div>Advaita branch</div>
+    <div class="leg-item" data-filter="gadadhar"onclick="filterCat('gadadhar')"><div class="leg-dot" style="background:#56d364"></div>Gadadhara branch</div>
+    <div class="leg-item" data-filter="gen2"    onclick="filterCat('gen2')">   <div class="leg-dot" style="background:#ff9d5c"></div>2nd generation</div>
+    <div class="leg-item" data-filter="bridge"  onclick="filterCat('bridge')"> <div class="leg-dot" style="background:#e3b341"></div>Bridge acharyas</div>
+    <div class="leg-item" data-filter="bvt"     onclick="filterCat('bvt')">    <div class="leg-dot" style="background:#ff7b72"></div>Bhaktivinoda era</div>
+    <div class="leg-item" data-filter="gmath"   onclick="filterCat('gmath')">  <div class="leg-dot" style="background:#79c0ff"></div>Gaudiya Math</div>
+    <div class="leg-item" data-filter="trad"    onclick="filterCat('trad')">   <div class="leg-dot" style="background:#d4a017"></div>Traditional lineages</div>
+    <div class="leg-all" onclick="filterCat(null)">Show all</div>
+  </div>
+  <div class="leg-section">
+    <h3>Connection type</h3>
+    <div class="leg-item" style="cursor:default;">
+      <svg class="leg-line-svg" width="28" height="12"><line x1="0" y1="6" x2="28" y2="6" stroke="#aabbcc" stroke-width="2.5" stroke-dasharray="1 9" stroke-linecap="round"/></svg>
+      Via intermediary chain
+    </div>
+    <div class="leg-item" style="cursor:default;">
+      <svg class="leg-line-svg" width="28" height="12"><line x1="0" y1="6" x2="28" y2="6" stroke="#58a6ff" stroke-width="2"/></svg>
+      Diksha (mantra initiation)
+    </div>
+    <div class="leg-item" style="cursor:default;">
+      <svg class="leg-line-svg" width="28" height="12"><line x1="0" y1="6" x2="28" y2="6" stroke="#f0a050" stroke-width="1.8" stroke-dasharray="7 4"/></svg>
+      Siksha (instructional)
+    </div>
+    <div class="leg-item" style="cursor:default;">
+      <svg class="leg-line-svg" width="28" height="12"><line x1="0" y1="6" x2="28" y2="6" stroke="#c084fc" stroke-width="1.4" stroke-dasharray="3 4"/></svg>
+      Family / marriage
+    </div>
+    <div class="leg-item" style="cursor:default;">
+      <svg class="leg-line-svg" width="28" height="12"><line x1="0" y1="6" x2="28" y2="6" stroke="#f0c060" stroke-width="1.1" stroke-dasharray="2 4"/></svg>
+      Association / disputed
+    </div>
+  </div>
+</div>
+
+<!-- Detail panel -->
+<div id="detail-panel">
+  <div id="detail-header">
+    <div id="detail-name"></div>
+    <button id="detail-close" onclick="closeDetail()" title="Close (Esc)">×</button>
+  </div>
+  <div id="detail-dates"></div>
+  <div id="detail-body">
+    <p id="detail-desc"></p>
+    <div id="detail-connections"></div>
+  </div>
+</div>
+
+<!-- Canvas -->
+<div id="canvas-wrap">
+  <svg id="main-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+</div>
+
+<!-- Era labels overlay -->
+<div id="era-labels"></div>
+
+<!-- Minimap -->
+<div id="minimap" title="Click to reset view">
+  <canvas id="mm-canvas" width="160" height="110"></canvas>
+  <div id="minimap-viewport"></div>
+</div>
+
+<!-- Tooltip -->
+<div id="tooltip"></div>
+
+<!-- Keyboard hint -->
+<div id="kbd-hint">
+  <kbd>↑↓←→</kbd> pan &nbsp; <kbd>+</kbd><kbd>−</kbd> zoom &nbsp; <kbd>Esc</kbd> clear &nbsp; <kbd>Enter</kbd> next result
+</div>
+
+<script>
+const NW = 134, NH = 42;
+
+const CAT = {
+  panca:    { fill:"#1a1500", stroke:"#f0c060", text:"#f0c060" },
+  goswami:  { fill:"#071a08", stroke:"#3fb950", text:"#56d364" },
+  nitai:    { fill:"#060f1e", stroke:"#58a6ff", text:"#79c0ff" },
+  advaita:  { fill:"#0e0720", stroke:"#d2a8ff", text:"#d2a8ff" },
+  gadadhar: { fill:"#041408", stroke:"#56d364", text:"#56d364" },
+  gen2:     { fill:"#190d05", stroke:"#ff9d5c", text:"#ffb380" },
+  bridge:   { fill:"#181400", stroke:"#e3b341", text:"#e3b341" },
+  bvt:      { fill:"#250707", stroke:"#ff7b72", text:"#ffa198" },
+  gmath:    { fill:"#040f1e", stroke:"#79c0ff", text:"#79c0ff" },
+  trad:     { fill:"#150f00", stroke:"#d4a017", text:"#d4a017" },
+};
+const CAT_LABELS = {
+  panca:"Panca-tattva", goswami:"Six Goswamis", nitai:"Nityananda branch",
+  advaita:"Advaita branch", gadadhar:"Gadadhara branch", gen2:"2nd generation",
+  bridge:"Bridge acharyas", bvt:"Bhaktivinoda era", gmath:"Gaudiya Math",
+  trad:"Traditional lineages",
+};
+const EC = {
+  diksha:       { col:"#58a6ff", sw:2.0, dash:"none", op:0.70 },
+  siksha:       { col:"#f0a050", sw:1.6, dash:"8 5",  op:0.65 },
+  family:       { col:"#c084fc", sw:1.3, dash:"3 4",  op:0.45 },
+  assoc:        { col:"#f0c060", sw:1.1, dash:"2 4",  op:0.30 },
+  main:         { col:"#58a6ff", sw:2.0, dash:"none", op:0.70 },
+  // "via chain" — round-capped white dots, clearly distinct from all other types
+  chain_diksha: { col:"#aabbcc", sw:2.5, dash:"1 9",  op:0.55, cap:"round" },
+  chain_siksha: { col:"#aabbcc", sw:2.5, dash:"1 9",  op:0.55, cap:"round" },
+  chain_assoc:  { col:"#aabbcc", sw:2.5, dash:"1 9",  op:0.45, cap:"round" },
+};
+
+const G=18, R=30, CS=NW+G, RS=NH+R;
+function cx(col){ return 20+col*CS; }
+function ry(row){ return 20+(row+1)*RS; }
+
+const NODES = [
+  // CHAITANYA — root of the tree, placed one row above the other Panca-tattva
+  { id:"chaitanya",    label:"Sri Chaitanya Mahaprabhu", dates:"1486–1534",       x:cx(6),  y:ry(0)-RS, cat:"panca",
+    desc:"Founder of Gaudiya Vaishnavism. Born Navadvipa, Bengal. Accepted sannyasa 1510. Spent final 24 years in Puri. Propagated sankirtana as the yuga-dharma. Considered Krishna-avatar by followers." },
+
+  // ROW 0 — Other Panca-tattva (eternal associates)
+  { id:"nityananda",   label:"Nityananda Prabhu",        dates:"c.1474–1540",     x:cx(2),  y:ry(0), cat:"panca",
+    desc:"Chief associate of Chaitanya; Balarama avatar. Born Ekachakra. Married Vasudha and Jahnava Devi. Settled Khardaha, Bengal. Founded vast Nityananda-parivara." },
+  { id:"advaita",      label:"Advaita Acharya",          dates:"1434–1559",       x:cx(10), y:ry(0), cat:"panca",
+    desc:"Elder associate; Maha-Vishnu/Sadashiva avatar. Born Sylhet. Invoked Chaitanya's descent through tulasi-Ganges worship. Settled Shantipur. Founded Advaita-parivara." },
+  { id:"gadadhar",     label:"Gadadhara Pandit",         dates:"c.1487–1542",     x:cx(8),  y:ry(0), cat:"panca",
+    desc:"Considered Radha-avatar. Close confidential associate. Served Chaitanya in Puri. Diksha guru of Rupa and Sanatana Goswamis (per Gadadhara-parivara tradition)." },
+  { id:"srivasa",      label:"Srivasa Pandit",           dates:"fl. 16th c.",     x:cx(4),  y:ry(0), cat:"panca",
+    desc:"Fifth member of Panca-tattva; householder whose courtyard hosted the secret nightly sankirtana. Considered expansion of Narada Muni." },
+
+  // ROW 1 — Nityananda's direct disciples (cols 0,1,2,3)
+  { id:"ramachandra_g",label:"Ramachandra Goswami",      dates:"fl. 16th c.",     x:cx(0),  y:ry(1), cat:"nitai",
+    desc:"Adopted son of Nityananda Prabhu; co-founder of the Nityananda-parivara with Viracandra." },
+  { id:"jahnava",      label:"Jahnava Devi",             dates:"fl. 16th c.",     x:cx(1),  y:ry(1), cat:"nitai",
+    desc:"Nityananda's wife and spiritual successor; female acharya who led the Gaudiya community after Nityananda's disappearance. Presided over Kheturi festival. Initiated many disciples including Viracandra." },
+  { id:"gauridasa",    label:"Gauridasa Pandit",         dates:"fl. 16th c.",     x:cx(2),  y:ry(1), cat:"nitai",
+    desc:"One of the 12 gopalas; disciple of Nityananda. Founded a lineage in Ambika Kalna. His Gaura-Nitai deities said to have come alive in his presence." },
+  { id:"uddharan",     label:"Uddharan Datta Thakur",    dates:"fl. 16th c.",     x:cx(3),  y:ry(1), cat:"nitai",
+    desc:"One of the 12 gopalas of Nityananda; goldsmith devotee from Saptagram. Known for his deep devotion and equal treatment regardless of caste." },
+
+  // ROW 1 — Six Goswamis first wave (cols 5,6,7) & Chaitanya's direct (col 4)
+  { id:"lokanath",     label:"Lokanatha Goswami",        dates:"fl. 16th c.",     x:cx(5),  y:ry(1), cat:"goswami",
+    desc:"One of the first sent to Vrindavan under Chaitanya's direction; called the 'seventh Goswami'. Diksha guru of Narottama Das Thakur (after long pleading)." },
+  { id:"bhugarbha",    label:"Bhugarbha Goswami",        dates:"fl. 16th c.",     x:cx(4),  y:ry(1), cat:"goswami",
+    desc:"Companion of Lokanatha Goswami; among the first to settle in Vrindavan. Practiced intense bhajana in the Vraja forests alongside Lokanatha." },
+  { id:"raghunath_d",  label:"Raghunatha Dasa Goswami", dates:"c.1495–1571",      x:cx(7),  y:ry(1), cat:"goswami",
+    desc:"Son of wealthy zamindar. Escaped family to join Chaitanya. Strict renunciant at Radha-kunda. Wrote Stava-mala and Mukta-carita. Lived at Radha-kunda after Chaitanya's disappearance." },
+
+  // ROW 1 — Gadadhara / Advaita side (cols 8,9,10,11,12)
+  { id:"gopal_guru",   label:"Gopal Guru Goswami",       dates:"fl. 16th–17th c.",x:cx(8),  y:ry(1), cat:"gadadhar",
+    desc:"Disciple of Vakreshvara Pandit; in the Gadadhara-parivara. Important teacher in Orissa/Puri area. Guru of Dhyanachandra Goswami." },
+  { id:"raghunath_b",  label:"Raghunatha Bhatta Goswami",dates:"c.1505–1579",     x:cx(9),  y:ry(1), cat:"goswami",
+    desc:"Lifelong brahmachari by Chaitanya's order. Famous for reciting Bhagavatam with divine taste. His disciples built Gaura-Govinda temple in Vrindavan." },
+  { id:"acyutananda",  label:"Acyutananda Das",          dates:"b.1503",          x:cx(10), y:ry(1), cat:"advaita",
+    desc:"Elder son of Advaita Acharya; became disciple of Gadadhara Pandit. Karttikeya expansion per tradition." },
+  { id:"krishna_m",    label:"Krishna Mishra Goswami",   dates:"fl. 16th c.",     x:cx(11), y:ry(1), cat:"advaita",
+    desc:"Son of Advaita Acharya; with brother Balarama co-founded the householder Advaita-parivara. Keeper of Advaita's Madan-Gopala deity at Shantipur." },
+
+  // ROW 2 — Six Goswamis main (cols 5,6,7,8) & Nitai row 2 (cols 1,2,3)
+  { id:"viracandra",   label:"Viracandra Prabhu",        dates:"fl. 16th–17th c.",x:cx(1),  y:ry(2), cat:"nitai",
+    desc:"Son of Nityananda and Vasudha; Ksherodakasayi Vishnu expansion. Disciple of Jahnava Devi. Continued Nityananda-vamsha in Khardaha. 400,000 disciples per tradition." },
+  { id:"dhananjaya",   label:"Dhananjaya Pandit",        dates:"fl. 16th c.",     x:cx(2),  y:ry(2), cat:"nitai",
+    desc:"One of the 12 gopalas of Nityananda; later disciple of Jahnava Thakurani. The Ananta Das Babaji lineage (Radha-kunda babajis) traces through him." },
+  { id:"sanatana",     label:"Sanatana Goswami",         dates:"c.1488–1558",     x:cx(5),  y:ry(2), cat:"goswami",
+    desc:"Elder brother of Rupa; former senior minister to Hussain Shah. Wrote Hari-bhakti-vilasa and Brhad-bhagavatamrita. Discovered Madan-Mohan deity. Guru of Jiva Goswami." },
+  { id:"rupa",         label:"Rupa Goswami",             dates:"1493–1564",       x:cx(6),  y:ry(2), cat:"goswami",
+    desc:"Chief of the Six Goswamis; former minister. Systematized rasa-tattva in Bhakti-rasamrita-sindhu and Ujjvala-nilamani. Discovered Govindadeva deity in Vrindavan. Guru of Jiva Goswami." },
+  { id:"gopal_bhatta", label:"Gopala Bhatta Goswami",    dates:"1503–1578",       x:cx(7),  y:ry(2), cat:"goswami",
+    desc:"South Indian devotee; son of Venkata Bhatta of Srirangam. Initiated by uncle Prabodhananda Saraswati. Established Radha-Ramana temple. Diksha guru of Srinivas Acharya." },
+  { id:"dhyanachandra",label:"Dhyanachandra Goswami",    dates:"fl. 17th c.",     x:cx(8),  y:ry(2), cat:"gadadhar",
+    desc:"Disciple of Gopal Guru Goswami; compiled the Paddhati, an important sadhana manual detailing mantras and meditation for Gaudiya practitioners." },
+  { id:"advaita_vamsa",label:"Advaita-vamsha (Shantipur)",dates:"16th c.–",       x:cx(11), y:ry(2), cat:"advaita",
+    desc:"Family succession from Advaita through Krishna Mishra and Balarama Mishra. Active in Shantipur, Maldah, and Bengal. Features heart-shaped banyan-leaf tilaka." },
+
+  // ROW 3 — Jiva + 2nd wave + Nitai row 3 (cols 1,2) + Advaita (col 11)
+  { id:"nitai_vamsa",  label:"Nityananda-vamsha (Khardaha)",dates:"16th c.–",     x:cx(1),  y:ry(3), cat:"nitai",
+    desc:"Family dynasty lineage from Nityananda via Viracandra, centered at Khardaha, Bengal. Still active today." },
+  { id:"jiva",         label:"Jiva Goswami",             dates:"1513–1598",       x:cx(6),  y:ry(3), cat:"goswami",
+    desc:"Nephew of Rupa and Sanatana; greatest philosopher among the Six Goswamis. Wrote the Sat-sandarbhas. Led the Vrindavan community after his uncles. Guru of Srinivas, Narottama, and Shyamananda." },
+  { id:"krishnadas_k", label:"Krishnadasa Kaviraja",     dates:"c.1496–1590",     x:cx(7),  y:ry(3), cat:"goswami",
+    desc:"Author of Sri Chaitanya-charitamrita, the essential Chaitanya biography. Blessed by Nityananda to go to Vrindavan. Wrote at very advanced age under Govindadeva deity's direction." },
+  { id:"radharaman_t", label:"Radha-Raman Goswami lineage", dates:"16th c.–",     x:cx(8),  y:ry(3), cat:"trad",
+    desc:"Hereditary Goswami families of Radha-Raman temple, Vrindavan. Founded by Gopala Bhatta Goswami; first successor was Damodar Das Goswami. Over 500 years of unbroken service. Multiple Goswami families rotate seva. Prominent scholar-acharyas include the Shrivatsa Goswami family." },
+  { id:"bijoy_k",      label:"Bijoy Krishna Goswami",    dates:"1841–1899",       x:cx(11), y:ry(9), cat:"advaita",
+    desc:"Most famous modern descendant of the Advaita-parivara. Initially in Brahmo Samaj, became a great Vaishnava mystic. Initiated many disciples in Bengal." },
+  { id:"haridas_sh",   label:"Haridas Shastri Maharaja", dates:"1918–2013",       x:cx(9),  y:ry(11), cat:"gadadhar",
+    desc:"Eminent saint and scholar in the Gadadhara-parivara line, Vrindavan. Guru for Satyanarayana Dasa Babaji and the Jiva Institute. A bridge between traditional Gaudiya practice and modern scholarship." },
+  { id:"shrivatsa",    label:"Shrivatsa Goswami",         dates:"b.1945",          x:cx(6),  y:ry(12), cat:"trad",
+    desc:"Scholar-acharya at Radha-Raman temple, Vrindavan; prominent voice for traditional Gaudiya Vaishnavism. Director of the Vrindavan Institute for Vaishnava Culture and Studies (VIVECS). Author and international lecturer on bhakti aesthetics and rasa-lila." },
+
+  // ROW 4 — 2nd generation (cols 3,4,5,6,7) + Ananta Das (col 2) + Satyanarayana (col 9)
+  { id:"ananta_das",   label:"Ananta Das Babaji",        dates:"1924–2014",       x:cx(1),  y:ry(12), cat:"trad",
+    desc:"Renowned saint of Radha-kunda in the Nityananda-parivara / Dhananjaya line. Teacher of Radha-Krishna bhajan in the traditional Vaishnava style." },
+  { id:"narottama",    label:"Narottama Das Thakur",     dates:"1520–fl.1600s",   x:cx(4),  y:ry(4), cat:"gen2",
+    desc:"Disciple of Lokanatha Goswami; studied under Jiva Goswami. Son of King Krishnananda Datta of Rajshahi. Organized Kheturi Gaura-Purnima festival. Bhajana spread to Manipur and Assam. Wrote Prarthana and Prema-bhakti-candrika." },
+  { id:"srinivas",     label:"Srinivas Acharya",         dates:"c.1540–fl.1610s", x:cx(5),  y:ry(4), cat:"gen2",
+    desc:"Disciple of Gopala Bhatta and Jiva Goswami. Led the first book distribution party from Vrindavan to Bengal. Converted King Birahambhir. Preached across eastern India." },
+  { id:"shyamananda",  label:"Shyamananda Prabhu",       dates:"1534–fl.1610s",   x:cx(7),  y:ry(4), cat:"gen2",
+    desc:"Disciple of Jiva Goswami; born in Medinipura. Name given by Jiva after finding Radha's anklebell. Primary preacher in Orissa. His lineage has 5 principal seats." },
+  { id:"narahari",     label:"Narahari Sarkar Thakur",   dates:"fl. 16th c.",     x:cx(3),  y:ry(4), cat:"gen2",
+    desc:"Associate of Chaitanya in Shrikhanda; his lineage became prominent in rural Bengal. Continued the tradition in the Shrikhanda region across several generations." },
+  { id:"satyanarayana",label:"Satyanarayana Dasa Babaji",dates:"b.1959",          x:cx(9),  y:ry(12), cat:"gadadhar",
+    desc:"Disciple of Haridas Shastri; founder of Jiva Institute of Vaishnava Studies, Vrindavan. Renowned scholar in the Gadadhara-parivara tradition." },
+
+  // ROW 5 — 2nd gen disciples + Manipuri + Radha-Raman lineage + Vamsivadana
+  { id:"ramachandra_k",label:"Ramachandra Kaviraja",     dates:"fl. 17th c.",     x:cx(5),  y:ry(5), cat:"gen2",
+    desc:"Disciple of Srinivas Acharya; intimate friend of Narottama Das Thakur. Important preacher in Bengal. His title 'kaviraja' given by Srinivas." },
+  { id:"rasikananda",  label:"Rasikananda Prabhu",       dates:"1590–1648",       x:cx(7),  y:ry(5), cat:"gen2",
+    desc:"Most prominent disciple of Shyamananda; powerful preacher across Orissa. Son of zamindar Achyutananda. Thousands became his disciples including many Muslims." },
+  { id:"manipuri",     label:"Manipuri Vaishnavism",     dates:"18th c.–",        x:cx(4),  y:ry(7), cat:"trad",
+    desc:"Regional form of Gaudiya Vaishnavism among the Meitei people of Manipur. Initiated by King Bhagyachandra under influence of Narottama lineage. Rasa-lila dance became a central feature." },
+  { id:"vamsivadana",  label:"Vamsivadana Thakur",       dates:"fl. 16th c.",     x:cx(0),  y:ry(1), cat:"nitai",
+    desc:"Associate of Chaitanya Mahaprabhu; identified with Krishna's flute in Gaura-ganoddesa-dipika. His grandson Ramachandra Goswami was adopted and initiated by Jahnava Devi, founding the Baghnapada Goswami lineage near Kalna, Bengal." },
+  { id:"damodar_das",  label:"Damodar Das Goswami",      dates:"fl. 16th–17th c.",x:cx(8),  y:ry(3), cat:"trad",
+    desc:"First successor chosen and initiated by Gopala Bhatta Goswami to continue the worship of Sri Radha-Raman. His descendants have served the deity for 500 years. His seat established the hereditary Goswami tradition at the Radha-Raman temple." },
+
+  // ROW 6 — Bridge acharyas + Baghnapada chain (left)
+  { id:"vishvanath",   label:"Vishvanatha Chakravarti",  dates:"1674–1750s",      x:cx(6),  y:ry(6), cat:"bridge",
+    desc:"Major 17th–18th c. acharya; clarified raganuga-bhakti doctrine in Raga-vartma-chandrika. Wrote commentaries on Bhakti-rasamrita-sindhu. Lived in Vrindavan. Guru of Baladeva Vidyabhushana." },
+  { id:"baghnapada_chain", label:"Baghnapada Goswami lineage", dates:"~1600–1850", x:cx(0), y:ry(6), cat:"nitai",
+    desc:"Succession of Goswami acharyas at Baghnapada (between Kalna and Navadvipa, Burdwan district) from Ramachandra Goswami through ~8 generations to Bipin Bihari Goswami. A caste-Goswami lineage tracing through the Jahnava-Nityananda branch, specializing in the rasaraja theology and siddha-pranali transmission." },
+
+  // ROW 7
+  { id:"baladeva",     label:"Baladeva Vidyabhushana",   dates:"c.1700–1793",     x:cx(6),  y:ry(7), cat:"bridge",
+    desc:"Wrote Govinda-bhashya, first Gaudiya commentary on Vedanta-sutras. Defended Gaudiya credentials at Galta (1706). Student of Vishvanatha. Major theologian linking Madhva and Gaudiya lines." },
+
+  // ROW 8
+  { id:"jagannath_b",  label:"Jagannatha Das Babaji",    dates:"1790–1894",       x:cx(5),  y:ry(8), cat:"bridge",
+    desc:"Saint of Navadvipa and Vrindavan; lived ~104 years. Confirmed Chaitanya's birthplace (Yoga-pitha) to Bhaktivinoda Thakur. Revered as a paramahamsa. Guru of Bhagavata Das Babaji." },
+  { id:"bipin_bihari",  label:"Bipin Bihari Goswami",    dates:"1850–1919",       x:cx(0),  y:ry(8), cat:"nitai",
+    desc:"Diksha guru of Bhaktivinoda Thakura (initiated 1880). 9th-generation descendant of Vamsivadana Thakur via Ramachandra Goswami of Baghnapada. Scholar-Goswami; wrote Dasa-mula-rasa and Hari-bhakti-tarangini. Passed siddha-pranali and ekadasa-bhava to Bhaktivinoda." },
+
+  // ROW 9 — Bhaktivinoda era (cols 1,4,5,6)
+  { id:"bhagavata_das", label:"Bhagavata Das Babaji",    dates:"fl. 19th c.",     x:cx(4),  y:ry(9), cat:"bridge",
+    desc:"Disciple of Jagannatha Das Babaji; initiated Gaurakishora Das Babaji into the babaji order. His guru was Jagannatha Das Babaji. He passed on the paramahamsa tradition of intense bhajana to Gaurakishora." },
+  { id:"gaurakishora", label:"Gaurakishora Das Babaji",  dates:"1838–1915",       x:cx(5),  y:ry(9), cat:"bvt",
+    desc:"Disciple of Bhagavata Das Babaji; considered Bhaktivinoda his siksha-guru. The sole disciple of his was Bhaktisiddhanta Sarasvati. Lived in extreme renunciation — wore only clothes from corpses, resided in lavatories to avoid materialists. BSS took initiation from him in 1900 after repeated rejections." },
+  { id:"bhaktivinoda", label:"Bhaktivinoda Thakura",     dates:"1838–1914",       x:cx(6),  y:ry(9), cat:"bvt",
+    desc:"Deputy Magistrate and prolific writer who revived Gaudiya Vaishnavism. Took diksha from Bipin Bihari Goswami (1880). Received siksha from Jagannatha Das Babaji. Rediscovered Chaitanya's birthplace. Wrote Jaiva-Dharma, Chaitanya-shikshamrita. Passed siddha-pranali to son Lalita Prasad; sent Bimala Prasad (BSS) for diksha to Gaurakishora." },
+
+  // ROW 10 — BSS + Lalita Prasad
+  { id:"lalita_prasad",label:"Lalita Prasad Thakur",     dates:"1880–c.1980",     x:cx(1),  y:ry(10), cat:"bvt",
+    desc:"Bhaktivinoda's 7th son; received mantra diksha and siddha-pranali directly from his father, preserving the Bipin Bihari / Baghnapada line. Maintained Bhaktivinoda's birthplace ashram at Ula-Birnagar. Lived a quiet life of intense bhajana in gopi-bhava as instructed by Bhaktivinoda. His lineage is distinct from and sometimes in tension with Bhaktisiddhanta's Gaudiya Math line." },
+  { id:"bss",          label:"Bhaktisiddhanta Sarasvati Thakura", dates:"1874–1937", x:cx(6), y:ry(10), cat:"bvt",
+    desc:"Son of Bhaktivinoda (4th son, Bimala Prasad); founded Gaudiya Math (1920). Took diksha from Gaurakishora Das Babaji; received siksha-parampara from Bhaktivinoda through Jagannatha Das Babaji. Established 64 branches across India plus Burma, Germany, England. Challenged caste-Vaishnavism. Initiated ~5,000 disciples." },
+
+  // ROW 11 — Gaudiya Math branches (cols 0–7)
+  { id:"bvts",         label:"Bhakti Vilasa Tirtha Mj",  dates:"fl. 20th c.",     x:cx(0),  y:ry(11), cat:"gmath",
+    desc:"Head of Sri Chaitanya Math, Mayapur branch after the 1948 court division of the Gaudiya Math." },
+  { id:"bsg",          label:"Bhakti Sundar Govinda Mj", dates:"1929–2010",       x:cx(0),  y:ry(12), cat:"gmath",
+    desc:"Disciple and successor of Bhakti Rakshak Sridhar Maharaj at Sri Chaitanya Saraswat Math. Expanded SCSM internationally, particularly in the West." },
+  { id:"brs",          label:"Bhakti Rakshak Sridhar Mj",dates:"1895–1988",       x:cx(2),  y:ry(11), cat:"gmath",
+    desc:"Founded Sri Chaitanya Saraswat Math (1941). Revered for depth of siddhantic understanding. Close friend of Prabhupada. Guru of Bhakti Sundar Govinda Maharaj." },
+  { id:"bpk",          label:"Bhakti Prajnan Keshava Mj",dates:"1898–1968",       x:cx(3),  y:ry(11), cat:"gmath",
+    desc:"Co-founded Sri Gaudiya Vedanta Samiti (1940). Guru of Bhaktivedanta Narayana Goswami Maharaja." },
+  { id:"prabhupada",   label:"A.C. Bhaktivedanta Swami",dates:"1896–1977",        x:cx(4),  y:ry(11), cat:"gmath",
+    desc:"Founded ISKCON in New York, 1966. Translated 80+ volumes of Vaishnava scripture. Circled globe 12 times. Established over 100 temples. Born Abhay Charan De in Calcutta." },
+  { id:"bdm",          label:"Bhakti Dayita Madhav Mj",  dates:"1904–1979",       x:cx(5),  y:ry(11), cat:"gmath",
+    desc:"Founded Sri Chaitanya Gaudiya Math (1953). Extensive preaching network across India. Known as the 'lion of preaching'." },
+  { id:"bvp",          label:"Bhakti Vaibhava Puri Mj",  dates:"1913–2009",       x:cx(6),  y:ry(11), cat:"gmath",
+    desc:"Founded Sri Krishna Chaitanya Mission (1966). Preached in India and internationally across several decades." },
+  { id:"bon",          label:"Bhakti Hridaya Bon Maharaj",dates:"1901–1982",      x:cx(7),  y:ry(11), cat:"gmath",
+    desc:"Founded Sri Sri Radha-Govindaji Trust. Went to Europe in 1930s as one of BSS's early western missionaries. Established Vrindavan Institute for Vaishnava Culture." },
+  { id:"bpp",          label:"Bhakti Pramode Puri Mj",   dates:"1898–2002",       x:cx(8),  y:ry(11), cat:"gmath",
+    desc:"Founded Sri Gopinatha Gaudiya Math (1989). Lived to age 104. Known for deep devotion and renunciation." },
+
+  // ROW 12 — Key 20th-century institutions & disciples (pre-2000)
+  { id:"lp_line",       label:"Bhakti Vinode Institute & Lalita Prasad line", dates:"1980–present", x:cx(1), y:ry(12), cat:"bvt",
+    desc:"The small community continuing Lalita Prasad Thakur's line. Centered at the Bhakti Vinode Institute ashram at Ula-Birnagar (Bhaktivinoda's birthplace). His Western disciples include Jagadananda Das (b.1950, initiated 1980, prolific writer on the Bhaktivinoda-Lalita Prasad tradition) and a handful of others. This is a non-institutional line of quiet bhajana practitioners preserving the siddha-pranali tradition of Bipin Bihari Goswami. Very small but distinct from all Gaudiya Math branches." },
+  { id:"iskcon",       label:"ISKCON",                   dates:"est. 1966",        x:cx(3),  y:ry(12), cat:"gmath",
+    desc:"International Society for Krishna Consciousness. Founded NYC 1966 by Prabhupada. Worldwide confederation with 600+ temples, farms, schools. GBC governs since 1970." },
+  { id:"narayana_gm",  label:"B.V. Narayana Goswami Mj",dates:"1921–2010",        x:cx(2),  y:ry(12), cat:"gmath",
+    desc:"Disciple of Bhakti Prajnan Keshava Maharaj; closely associated with Prabhupada. Founded Gaudiya Vedanta Society with global following. Known for teaching on rasa-tattva." },
+  { id:"siddha",       label:"Siddhaswarupananda",       dates:"b.1947",           x:cx(4),  y:ry(12), cat:"gmath",
+    desc:"Disciple of Prabhupada; founded Science of Identity Foundation (1977). Also known as Chris Butler; based in Hawaii. Extensive following in Philippines, Australia, globally." },
+  { id:"tripurari",    label:"Swami B.V. Tripurari",     dates:"b.1949",           x:cx(5),  y:ry(12), cat:"gmath",
+    desc:"Disciple of Prabhupada; founded Sri Caitanya Sangha / Audarya Ashram (1985). Known for scholarly writings on Gaudiya theology and aesthetics." },
+];
+
+const EDGES = [
+  // Panca-tattva — eternal associates, not formal diksha relationships
+  { from:"chaitanya",   to:"nityananda",   type:"assoc" },
+  { from:"chaitanya",   to:"advaita",      type:"assoc" },
+  { from:"chaitanya",   to:"gadadhar",     type:"assoc" },
+  { from:"chaitanya",   to:"srivasa",      type:"assoc" },
+  // Chaitanya gave siksha (instruction), not formal diksha mantra, to most Goswamis
+  { from:"chaitanya",   to:"rupa",         type:"siksha" },
+  { from:"chaitanya",   to:"sanatana",     type:"siksha" },
+  { from:"chaitanya",   to:"lokanath",     type:"siksha" },
+  { from:"chaitanya",   to:"raghunath_d",  type:"siksha" },
+  { from:"chaitanya",   to:"raghunath_b",  type:"siksha" },
+  { from:"chaitanya",   to:"gopal_bhatta", type:"siksha" },
+  { from:"chaitanya",   to:"bhugarbha",    type:"siksha" },
+  // Vamsivadana — Chaitanya associate, connection to Nityananda branch via Jahnava adopting his grandson
+  { from:"chaitanya",   to:"vamsivadana",   type:"assoc" },
+  { from:"nityananda",  to:"vamsivadana",   type:"assoc" },
+  { from:"jahnava",     to:"vamsivadana",   type:"siksha", label:"adopted grandson" },
+  // Vamsivadana → Baghnapada chain → Bipin Bihari
+  { from:"vamsivadana",  to:"baghnapada_chain", type:"diksha" },
+  { from:"baghnapada_chain", to:"bipin_bihari",  type:"diksha" },
+  // Bipin Bihari → Bhaktivinoda (diksha)
+  { from:"bipin_bihari",to:"bhaktivinoda",  type:"diksha" },
+  // Bhaktivinoda → Lalita Prasad (diksha + family)
+  { from:"bhaktivinoda",to:"lalita_prasad", type:"diksha" },
+  { from:"bhaktivinoda",to:"lalita_prasad", type:"family" },
+  // Jagannatha Das Babaji → Bhagavata Das Babaji → Gaurakishora
+  { from:"jagannath_b", to:"bhagavata_das", type:"diksha" },
+  { from:"bhagavata_das",to:"gaurakishora", type:"diksha" },
+  // Bhaktivinoda's siksha relationship with Gaurakishora (they heard Bhagavatam together)
+  { from:"bhaktivinoda",to:"gaurakishora",  type:"siksha" },
+  // Radha-Raman temple lineage
+  { from:"gopal_bhatta",to:"damodar_das",   type:"diksha" },
+  { from:"damodar_das", to:"radharaman_t",  type:"diksha" },
+  { from:"radharaman_t",to:"shrivatsa",     type:"diksha", label:"via chain" },
+  { from:"nityananda",  to:"ramachandra_g",type:"diksha" },
+  { from:"nityananda",  to:"jahnava",      type:"family" },
+  { from:"nityananda",  to:"viracandra",   type:"family" },
+  { from:"nityananda",  to:"gauridasa",    type:"diksha" },
+  { from:"nityananda",  to:"uddharan",     type:"diksha" },
+  { from:"nityananda",  to:"dhananjaya",   type:"diksha" },
+  { from:"jahnava",     to:"viracandra",   type:"diksha" },
+  { from:"jahnava",     to:"dhananjaya",   type:"diksha" },
+  { from:"viracandra",  to:"nitai_vamsa",  type:"diksha" },
+  { from:"dhananjaya",  to:"ananta_das",   type:"diksha", label:"via chain" },
+  // Advaita branch — sons are family, disciples are diksha
+  { from:"advaita",     to:"acyutananda",  type:"family" },
+  { from:"advaita",     to:"krishna_m",    type:"family" },
+  { from:"gadadhar",    to:"acyutananda",  type:"diksha" },
+  { from:"krishna_m",   to:"advaita_vamsa",type:"diksha" },
+  { from:"advaita_vamsa",to:"bijoy_k",     type:"diksha" },
+  // Gadadhara branch — Gadadhara-parivara tradition holds Rupa & Sanatana received diksha from him,
+  // but no unambiguous scriptural evidence exists; even Satyanarayana Dasa (Jiva Institute) admits this.
+  // Mainstream view: Rupa & Sanatana's principal guru was Chaitanya via siksha; their diksha guru is unclear.
+  // Shown here as disputed association rather than confirmed diksha.
+  { from:"gadadhar",    to:"rupa",         type:"assoc", label:"disputed trad." },
+  { from:"gadadhar",    to:"sanatana",     type:"assoc", label:"disputed trad." },
+  { from:"gadadhar",    to:"gopal_guru",   type:"diksha" },
+  { from:"gopal_guru",  to:"dhyanachandra",type:"diksha" },
+  { from:"dhyanachandra",to:"haridas_sh",  type:"diksha", label:"via chain" },
+  { from:"haridas_sh",  to:"satyanarayana",type:"diksha" },
+  // Six Goswamis — Rupa gave diksha to Jiva; Sanatana gave siksha
+  { from:"rupa",        to:"jiva",         type:"diksha" },
+  { from:"sanatana",    to:"jiva",         type:"siksha" },
+  { from:"lokanath",    to:"narottama",    type:"diksha" },
+  { from:"bhugarbha",   to:"lokanath",     type:"assoc" },
+  // Jiva gave siksha to all three; Gopala Bhatta gave diksha to Srinivas
+  { from:"jiva",        to:"narottama",    type:"siksha" },
+  { from:"jiva",        to:"srinivas",     type:"siksha" },
+  { from:"jiva",        to:"shyamananda",  type:"siksha" },
+  { from:"jiva",        to:"krishnadas_k", type:"siksha" },
+  { from:"gopal_bhatta",to:"srinivas",     type:"diksha" },
+  // 2nd gen diksha lines
+  { from:"srinivas",    to:"ramachandra_k",type:"diksha" },
+  { from:"shyamananda", to:"rasikananda",  type:"diksha" },
+  { from:"narottama",   to:"manipuri",     type:"assoc",  label:"influence" },
+  // Bridge chain
+  { from:"jiva",        to:"vishvanath",   type:"siksha", label:"via chain" },
+  { from:"vishvanath",  to:"baladeva",     type:"diksha" },
+  { from:"baladeva",    to:"jagannath_b",  type:"diksha", label:"via chain" },
+  { from:"jagannath_b", to:"bhaktivinoda", type:"siksha" },
+  // Bhaktivinoda: diksha from Bipin Bihari; siksha from Jagannatha Babaji
+  // BSS took diksha from Gaurakishora; is also Bhaktivinoda's son (family)
+  { from:"gaurakishora",to:"bss",          type:"diksha" },
+  { from:"bhaktivinoda",to:"bss",          type:"family" },
+  // BSS to Math
+  { from:"bss",         to:"bvts",         type:"diksha" },
+  { from:"bss",         to:"brs",          type:"diksha" },
+  { from:"bss",         to:"bpk",          type:"diksha" },
+  { from:"bss",         to:"prabhupada",   type:"diksha" },
+  { from:"bss",         to:"bdm",          type:"diksha" },
+  { from:"bss",         to:"bvp",          type:"diksha" },
+  { from:"bss",         to:"bon",          type:"diksha" },
+  { from:"bss",         to:"bpp",          type:"diksha" },
+  // Modern
+  { from:"brs",         to:"bsg",          type:"diksha" },
+  { from:"bpk",         to:"narayana_gm",  type:"diksha" },
+  { from:"prabhupada",  to:"iskcon",       type:"diksha" },
+  { from:"prabhupada",  to:"siddha",       type:"diksha" },
+  { from:"prabhupada",  to:"tripurari",    type:"diksha" },
+  // Lalita Prasad line
+  { from:"lalita_prasad", to:"lp_line",   type:"diksha" },
+];
+
+// ── DERIVED ────────────────────────────────────────────────────────────────
+const nodeMap={};
+NODES.forEach(n=>nodeMap[n.id]=n);
+
+// Build adjacency for connections panel
+const adj={};
+NODES.forEach(n=>{adj[n.id]={out:[],in:[]};});
+EDGES.forEach(e=>{
+  if(adj[e.from]) adj[e.from].out.push(e);
+  if(adj[e.to])   adj[e.to].in.push(e);
+});
+
+// ── SVG SETUP ──────────────────────────────────────────────────────────────
+const wrap = document.getElementById("canvas-wrap");
+const svg  = document.getElementById("main-svg");
+const NS   = "http://www.w3.org/2000/svg";
+let vx=0, vy=0, sc=1;
+
+function el(tag, attrs, parent){
+  const e=document.createElementNS(NS,tag);
+  for(const [k,v] of Object.entries(attrs||{})) e.setAttribute(k,v);
+  if(parent) parent.appendChild(e);
+  return e;
+}
+
+function build(){
+  svg.innerHTML="";
+
+  // Era bands
+  const bandData=[
+    {y:ry(0)-RS-10, h:RS*2+8,  label:"Sri Chaitanya Mahaprabhu & Panca-tattva  (1486–1534)",     col:"rgba(240,192,96,0.04)"},
+    {y:ry(1)-6,  h:RS*2+8,     label:"First associates, Six Goswamis  (1490s–1580s)",             col:"rgba(63,185,80,0.04)"},
+    {y:ry(3)-6,  h:RS*3+8,     label:"Jiva Goswami era, 2nd generation  (1560s–1680s)",           col:"rgba(255,157,92,0.04)"},
+    {y:ry(6)-6,  h:RS*3+8,     label:"Bridge acharyas  (17th–19th c.)",                           col:"rgba(227,179,65,0.04)"},
+    {y:ry(9)-6,  h:RS*2+8,     label:"Bhaktivinoda, Bipin Bihari, Lalita Prasad & Gaurakishora  (1838–1980)", col:"rgba(255,123,114,0.04)"},
+    {y:ry(10)-6, h:RS+8,       label:"Bhaktisiddhanta Sarasvati & Gaudiya Math  (1920–1937)",      col:"rgba(121,192,255,0.04)"},
+    {y:ry(11)-6, h:RS*2+14,    label:"Gaudiya Math disciples & institutions  (1940–1990s)",         col:"rgba(86,211,100,0.04)"},
+  ];
+  const bg=el("g",{"pointer-events":"none"},svg);
+  bandData.forEach(b=>{
+    el("rect",{x:0,y:b.y,width:9999,height:b.h,fill:b.col},bg);
+    el("text",{x:6,y:b.y+10,fill:"#2d3640","font-size":"8.5","font-style":"italic"},bg).textContent=b.label;
+  });
+
+  // Edges
+  const eG=el("g",{"pointer-events":"none"},svg);
+  EDGES.forEach(edge=>{
+    const a=nodeMap[edge.from], b=nodeMap[edge.to];
+    if(!a||!b) return;
+    const ax=a.x+NW/2, ay=a.y+NH, bx=b.x+NW/2, by=b.y;
+    const dy=by-ay;
+    const cp=Math.min(Math.abs(dy)*0.4,45);
+    const d=`M${ax},${ay} C${ax},${ay+cp} ${bx},${by-cp} ${bx},${by}`;
+    // "via chain" edges get a distinct thinner/gapped style
+    const isChain = edge.label==="via chain";
+    let et;
+    if(isChain){
+      et = EC["chain_"+edge.type] || EC.chain_diksha;
+    } else {
+      et = EC[edge.type] || EC.diksha;
+    }
+    el("path",{d,stroke:et.col,"stroke-width":et.sw,fill:"none",opacity:et.op,
+      "stroke-dasharray":et.dash,"stroke-linecap":et.cap||"butt",
+      "data-from":edge.from,"data-to":edge.to},eG);
+    if(edge.label){
+      const mx=(ax+bx)/2, my=(ay+by)/2-4;
+      el("text",{x:mx,y:my,fill:"#3a4450","font-size":"7","text-anchor":"middle"},eG).textContent=edge.label;
+    }
+  });
+
+  // Nodes
+  const nG=el("g",{},svg);
+  NODES.forEach(n=>{
+    const c=CAT[n.cat]||CAT.panca;
+    const g=el("g",{"data-id":n.id,class:"node-group",transform:`translate(${n.x},${n.y})`},nG);
+    g.addEventListener("mouseenter",ev=>showTooltip(n,ev));
+    g.addEventListener("mouseleave",hideTooltip);
+    g.addEventListener("click",()=>openDetail(n.id));
+
+    el("rect",{x:0,y:0,width:NW,height:NH,rx:4,fill:c.fill,stroke:c.stroke,"stroke-width":"1.3"},g);
+
+    // Word wrap label, up to 3 lines
+    const words=n.label.split(" ");
+    let lines=[""];
+    words.forEach(w=>{
+      const test=(lines[lines.length-1]+" "+w).trim();
+      if(test.length<=21) lines[lines.length-1]=test;
+      else if(lines.length<3) lines.push(w);
+      else lines[2]+=" "+w;
+    });
+    lines=lines.filter(Boolean);
+
+    const hasDate=!!n.dates;
+    const lineH=11;
+    const totalH=lines.length*lineH+(hasDate?10:0);
+    let ty=(NH-totalH)/2+lineH;
+
+    lines.forEach((ln,i)=>{
+      el("text",{x:NW/2,y:ty+i*lineH,fill:c.text,"font-size":"9.5","font-weight":"600","text-anchor":"middle"},g).textContent=ln;
+    });
+    if(hasDate){
+      el("text",{x:NW/2,y:ty+lines.length*lineH+1,fill:"#6a737d","font-size":"8","font-style":"italic","text-anchor":"middle"},g).textContent=n.dates;
+    }
+  });
+
+  const maxX=Math.max(...NODES.map(n=>n.x))+NW+40;
+  const maxY=Math.max(...NODES.map(n=>n.y))+NH+40;
+  svg.setAttribute("width",maxX);
+  svg.setAttribute("height",maxY);
+
+  buildEraLabels(bandData);
+  drawMinimap();
+}
+
+// ── ERA LABELS (fixed left, scroll-synced vertically) ──────────────────────
+let eraData=[];
+function buildEraLabels(bands){
+  eraData=bands;
+  const div=document.getElementById("era-labels");
+  div.innerHTML="";
+  bands.forEach((b,i)=>{
+    const span=document.createElement("div");
+    span.className="era-label-fixed";
+    span.dataset.idx=i;
+    span.textContent=b.label;
+    div.appendChild(span);
+  });
+  positionEraLabels();
+}
+function positionEraLabels(){
+  const labels=document.querySelectorAll(".era-label-fixed");
+  labels.forEach((lbl,i)=>{
+    const b=eraData[i];
+    if(!b) return;
+    const screenY=b.y*sc+vy;
+    const screenH=b.h*sc;
+    const top=44; // toolbar height
+    const viewH=window.innerHeight-44;
+    // Center label within visible portion of band
+    const clampTop=Math.max(screenY,top);
+    const clampBot=Math.min(screenY+screenH,top+viewH);
+    const midY=(clampTop+clampBot)/2;
+    const visible=clampBot>clampTop;
+    lbl.style.top=(midY-10)+"px";
+    lbl.style.opacity=visible?"1":"0";
+  });
+}
+
+// ── TRANSFORM ─────────────────────────────────────────────────────────────
+function applyT(){
+  svg.style.transform=`translate(${vx}px,${vy}px) scale(${sc})`;
+  document.getElementById("zoom-info").textContent=Math.round(sc*100)+"%";
+  positionEraLabels();
+  updateMinimapViewport();
+}
+
+let minSc=0.08; // updated at resetView
+
+function zoom(f,ox,oy){
+  const pw=wrap.offsetWidth/2, ph=wrap.offsetHeight/2;
+  ox=ox??pw; oy=oy??ph;
+  const ns=Math.min(Math.max(sc*f,minSc),4);
+  vx=ox-(ox-vx)*(ns/sc); vy=oy-(oy-vy)*(ns/sc); sc=ns; applyT();
+}
+
+function resetView(){
+  const svgW=Math.max(...NODES.map(n=>n.x))+NW+40;
+  const svgH=Math.max(...NODES.map(n=>n.y))+NH+40;
+  const w=wrap.offsetWidth, h=wrap.offsetHeight;
+  sc=Math.min((w-40)/svgW,(h-60)/svgH,0.88);
+  minSc=sc; // can't zoom out further than full-fit
+  vx=(w-svgW*sc)/2; vy=20; applyT(); clearHL();
+}
+
+// ── PAN ─────────────────────────────────────────────────────────────────
+let drag=false,lx=0,ly=0;
+wrap.addEventListener("mousedown",e=>{
+  if(e.target.closest(".node-group")) return;
+  drag=true; lx=e.clientX; ly=e.clientY; wrap.classList.add("dragging");
+});
+window.addEventListener("mouseup",()=>{drag=false;wrap.classList.remove("dragging");});
+window.addEventListener("mousemove",e=>{
+  if(!drag) return;
+  vx+=e.clientX-lx; vy+=e.clientY-ly; lx=e.clientX; ly=e.clientY; applyT();
+});
+wrap.addEventListener("wheel",e=>{
+  e.preventDefault();
+  const r=wrap.getBoundingClientRect();
+  zoom(e.deltaY<0?1.1:0.91,e.clientX-r.left,e.clientY-r.top);
+},{passive:false});
+
+// Touch
+let lp=null;
+wrap.addEventListener("touchstart",e=>{
+  if(e.touches.length===2) lp=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+  else{ drag=true; lx=e.touches[0].clientX; ly=e.touches[0].clientY; }
+},{passive:true});
+wrap.addEventListener("touchmove",e=>{
+  if(e.touches.length===2&&lp){
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    zoom(d/lp); lp=d;
+  } else if(drag){
+    vx+=e.touches[0].clientX-lx; vy+=e.touches[0].clientY-ly;
+    lx=e.touches[0].clientX; ly=e.touches[0].clientY; applyT();
+  }
+},{passive:true});
+wrap.addEventListener("touchend",()=>{drag=false;lp=null;});
+
+// ── KEYBOARD SHORTCUTS ──────────────────────────────────────────────────
+const PAN_STEP=80;
+document.addEventListener("keydown",e=>{
+  const tag=document.activeElement.tagName;
+  if(tag==="INPUT") return;
+  switch(e.key){
+    case "ArrowLeft":  vx+=PAN_STEP; applyT(); e.preventDefault(); break;
+    case "ArrowRight": vx-=PAN_STEP; applyT(); e.preventDefault(); break;
+    case "ArrowUp":    vy+=PAN_STEP; applyT(); e.preventDefault(); break;
+    case "ArrowDown":  vy-=PAN_STEP; applyT(); e.preventDefault(); break;
+    case "+": case "=": zoom(1.2); e.preventDefault(); break;
+    case "-": case "_": zoom(0.83); e.preventDefault(); break;
+    case "Escape":
+      clearHL(); closeDetail();
+      document.getElementById("search-box").value="";
+      onSearchInput("");
+      break;
+    case "Enter":
+      if(searchResults.length>0){
+        e.shiftKey ? prevMatch() : nextMatch();
+        e.preventDefault();
+      }
+      break;
+    case "f": case "F":
+      document.getElementById("search-box").focus();
+      e.preventDefault();
+      break;
+  }
+});
+
+// ── HOVER TOOLTIP (name only) ─────────────────────────────────────────────
+const tip=document.getElementById("tooltip");
+function showTooltip(n,e){
+  const c=CAT[n.cat]||CAT.panca;
+  tip.style.color=c.stroke;
+  tip.textContent=n.label+(n.dates?" · "+n.dates:"");
+  tip.style.opacity="1";
+  moveTip(e);
+}
+function moveTip(e){
+  let x=e.clientX+12, y=e.clientY-28;
+  if(x+230>window.innerWidth) x=e.clientX-235;
+  if(y<50) y=e.clientY+12;
+  tip.style.left=x+"px"; tip.style.top=y+"px";
+}
+wrap.addEventListener("mousemove",e=>{ if(tip.style.opacity==="1") moveTip(e); });
+function hideTooltip(){ tip.style.opacity="0"; }
+
+// ── DETAIL PANEL ──────────────────────────────────────────────────────────
+let currentDetail=null;
+function openDetail(id){
+  const n=nodeMap[id];
+  if(!n) return;
+
+  // If same node, close
+  if(currentDetail===id){ closeDetail(); return; }
+  currentDetail=id;
+
+  const c=CAT[n.cat]||CAT.panca;
+  document.getElementById("detail-name").textContent=n.label;
+  document.getElementById("detail-name").style.color=c.stroke;
+
+  // Dates + category badge
+  const datesEl=document.getElementById("detail-dates");
+  const catLabel=CAT_LABELS[n.cat]||n.cat;
+  datesEl.innerHTML=`<span style="color:#8b949e">${n.dates||""}</span><span id="detail-cat" style="background:${c.fill};color:${c.stroke};border:1px solid ${c.stroke}">${catLabel}</span>`;
+
+  document.getElementById("detail-desc").textContent=n.desc||"";
+
+  // Connections
+  const connDiv=document.getElementById("detail-connections");
+  connDiv.innerHTML="";
+  const outEdges=adj[id]?.out||[];
+  const inEdges=adj[id]?.in||[];
+  const typeLabel={diksha:"Diksha disciples",siksha:"Siksha disciples",family:"Family",assoc:"Associates",main:"Disciples"};
+
+  function makeGroup(edges, direction){
+    if(!edges.length) return;
+    const byType={};
+    edges.forEach(e=>{
+      const t=e.type||"main";
+      if(!byType[t]) byType[t]=[];
+      byType[t].push(direction==="out"?e.to:e.from);
+    });
+    Object.entries(byType).forEach(([type,ids])=>{
+      const grp=document.createElement("div");
+      grp.className="conn-group";
+      const lbl=document.createElement("div");
+      const lineStyle=EC[type]||EC.main;
+      lbl.className="conn-label";
+      lbl.textContent=(direction==="in"?"← Received from: ":"→ "+(typeLabel[type]||type)+": ");
+      grp.appendChild(lbl);
+      ids.forEach(tid=>{
+        const tn=nodeMap[tid];
+        if(!tn) return;
+        const a=document.createElement("a");
+        a.className="conn-item";
+        a.textContent=tn.label+(tn.dates?" ("+tn.dates+")":"");
+        a.onclick=()=>{ openDetail(tid); panToNode(tid); };
+        grp.appendChild(a);
+      });
+      connDiv.appendChild(grp);
+    });
+  }
+  if(outEdges.length){
+    const h=document.createElement("h4"); h.textContent="Connections from"; connDiv.appendChild(h);
+    makeGroup(outEdges,"out");
+  }
+  if(inEdges.length){
+    const h=document.createElement("h4"); h.textContent="Connections to"; connDiv.appendChild(h);
+    makeGroup(inEdges,"in");
+  }
+
+  document.getElementById("detail-panel").classList.add("open");
+  highlightNode(id);
+}
+function closeDetail(){
+  currentDetail=null;
+  document.getElementById("detail-panel").classList.remove("open");
+  clearHL();
+}
+
+// Click on canvas closes panel
+wrap.addEventListener("click",e=>{ if(!e.target.closest(".node-group")){ closeDetail(); }});
+
+// ── PAN TO NODE ──────────────────────────────────────────────────────────
+function panToNode(id, animate=true){
+  const n=nodeMap[id];
+  if(!n) return;
+  const panelW=document.getElementById("detail-panel").classList.contains("open")?300:0;
+  const cx=(wrap.offsetWidth-panelW)/2;
+  const cy=wrap.offsetHeight/2;
+  const tx=cx-(n.x+NW/2)*sc;
+  const ty=cy-(n.y+NH/2)*sc;
+  if(animate){ animatePan(tx,ty); } else { vx=tx; vy=ty; applyT(); }
+}
+function animatePan(tx,ty){
+  const sx=vx, sy=vy;
+  const dur=300;
+  const start=performance.now();
+  function step(now){
+    const t=Math.min((now-start)/dur,1);
+    const ease=t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+    vx=sx+(tx-sx)*ease; vy=sy+(ty-sy)*ease; applyT();
+    if(t<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ── HIGHLIGHT ───────────────────────────────────────────────────────────
+let hl=null;
+function highlightNode(id){
+  hl=id;
+  const conn=new Set([id]);
+  EDGES.forEach(e=>{ if(e.from===id) conn.add(e.to); if(e.to===id) conn.add(e.from); });
+  document.querySelectorAll(".node-group").forEach(g=>{
+    g.classList.toggle("dim",!conn.has(g.dataset.id));
+    if(g.dataset.id===id) g.classList.add("highlight");
+    else g.classList.remove("highlight");
+  });
+  document.querySelectorAll("[data-from]").forEach(p=>{
+    p.style.opacity=(p.dataset.from===id||p.dataset.to===id)?"":"0.04";
+  });
+}
+function clearHL(){
+  hl=null;
+  document.querySelectorAll(".node-group").forEach(g=>g.classList.remove("dim","highlight"));
+  document.querySelectorAll("[data-from]").forEach(p=>p.style.opacity="");
+}
+
+// ── BRANCH FILTER ────────────────────────────────────────────────────────
+let activeFilter=null;
+function filterCat(cat){
+  activeFilter=cat;
+  document.querySelectorAll(".leg-item[data-filter]").forEach(li=>{
+    li.classList.toggle("active-filter", li.dataset.filter===cat);
+  });
+  if(!cat){
+    // Show all — clear everything
+    document.querySelectorAll(".node-group").forEach(g=>{
+      g.classList.remove("dim","highlight");
+    });
+    document.querySelectorAll("[data-from]").forEach(p=>p.style.opacity="");
+    return;
+  }
+  // Find all nodes in this category
+  const catNodes=new Set(NODES.filter(n=>n.cat===cat).map(n=>n.id));
+  // Also include nodes that have a direct edge to/from a cat node (their immediate connections stay visible)
+  const connected=new Set(catNodes);
+  EDGES.forEach(e=>{
+    if(catNodes.has(e.from)) connected.add(e.to);
+    if(catNodes.has(e.to))   connected.add(e.from);
+  });
+  document.querySelectorAll(".node-group").forEach(g=>{
+    const id=g.dataset.id;
+    if(catNodes.has(id)){
+      g.classList.remove("dim");
+      g.classList.add("highlight"); // glow on branch members
+    } else if(connected.has(id)){
+      g.classList.remove("dim","highlight");
+    } else {
+      g.classList.add("dim");
+      g.classList.remove("highlight");
+    }
+  });
+  document.querySelectorAll("[data-from]").forEach(p=>{
+    const fa=nodeMap[p.dataset.from], fb=nodeMap[p.dataset.to];
+    const relevant=catNodes.has(p.dataset.from)||catNodes.has(p.dataset.to);
+    p.style.opacity=relevant?"":"0.04";
+  });
+}
+
+// ── LEGEND TOGGLE ────────────────────────────────────────────────────────
+function toggleLegend(){
+  const p=document.getElementById("legend-panel");
+  const btn=document.getElementById("legend-btn");
+  p.classList.toggle("open");
+  btn.classList.toggle("active",p.classList.contains("open"));
+  btn.textContent=p.classList.contains("open")?"Legend ▴":"Legend ▾";
+}
+document.addEventListener("click",e=>{
+  const p=document.getElementById("legend-panel");
+  if(p.classList.contains("open") && !p.contains(e.target) && !document.getElementById("legend-btn").contains(e.target)){
+    toggleLegend();
+  }
+});
+
+// ── SEARCH ────────────────────────────────────────────────────────────────
+let searchResults=[], searchIdx=-1;
+
+function onSearchInput(q){
+  const clearBtn=document.getElementById("search-clear");
+  const navDiv=document.getElementById("search-nav");
+  clearBtn.style.display=q?"block":"none";
+
+  if(!q){
+    searchResults=[]; searchIdx=-1;
+    navDiv.style.display="none";
+    clearHL(); activeFilter=null;
+    document.querySelectorAll(".node-group").forEach(g=>g.classList.remove("dim","search-match"));
+    document.querySelectorAll("[data-from]").forEach(p=>p.style.opacity="");
+    return;
+  }
+
+  const lq=q.toLowerCase();
+  searchResults=NODES.filter(n=>
+    n.label.toLowerCase().includes(lq)||
+    n.id.toLowerCase().includes(lq)||
+    (n.desc&&n.desc.toLowerCase().includes(lq))
+  );
+
+  const countEl=document.getElementById("search-count");
+  if(searchResults.length===0){
+    countEl.textContent="0 results";
+    navDiv.style.display="flex";
+    document.querySelectorAll(".node-group").forEach(g=>g.classList.add("dim"));
+    return;
+  }
+
+  countEl.textContent=`1 / ${searchResults.length}`;
+  navDiv.style.display="flex";
+  searchIdx=0;
+  jumpToResult(0);
+}
+
+function jumpToResult(idx){
+  searchIdx=((idx%searchResults.length)+searchResults.length)%searchResults.length;
+  const n=searchResults[searchIdx];
+  document.getElementById("search-count").textContent=`${searchIdx+1} / ${searchResults.length}`;
+
+  const matchIds=new Set(searchResults.map(r=>r.id));
+  document.querySelectorAll(".node-group").forEach(g=>{
+    g.classList.toggle("dim",!matchIds.has(g.dataset.id));
+    g.classList.toggle("highlight",g.dataset.id===n.id);
+  });
+  document.querySelectorAll("[data-from]").forEach(p=>p.style.opacity="0.04");
+
+  panToNode(n.id);
+  openDetail(n.id);
+}
+
+function nextMatch(){ if(searchResults.length) jumpToResult(searchIdx+1); }
+function prevMatch(){ if(searchResults.length) jumpToResult(searchIdx-1); }
+
+document.getElementById("search-box").addEventListener("input",function(){ onSearchInput(this.value.trim()); });
+document.getElementById("search-clear").addEventListener("click",()=>{
+  document.getElementById("search-box").value="";
+  onSearchInput("");
+});
+document.getElementById("next-match").addEventListener("click",nextMatch);
+document.getElementById("prev-match").addEventListener("click",prevMatch);
+document.getElementById("search-box").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){ e.shiftKey?prevMatch():nextMatch(); e.preventDefault(); }
+  if(e.key==="Escape"){ document.getElementById("search-box").value=""; onSearchInput(""); }
+});
+
+// ── MINIMAP ──────────────────────────────────────────────────────────────
+const mmCanvas=document.getElementById("mm-canvas");
+const mmCtx=mmCanvas.getContext("2d");
+const MM_W=160, MM_H=110;
+
+function drawMinimap(){
+  const svgW=parseFloat(svg.getAttribute("width")||0);
+  const svgH=parseFloat(svg.getAttribute("height")||0);
+  if(!svgW||!svgH) return;
+  const scale=Math.min(MM_W/svgW, MM_H/svgH)*0.95;
+  const offX=(MM_W-svgW*scale)/2;
+  const offY=(MM_H-svgH*scale)/2;
+
+  mmCtx.clearRect(0,0,MM_W,MM_H);
+  mmCtx.fillStyle="#0d1117";
+  mmCtx.fillRect(0,0,MM_W,MM_H);
+
+  // Draw era bands
+  const bands=[
+    {y:ry(0)-RS-10,h:RS*2+8,col:"rgba(240,192,96,0.07)"},
+    {y:ry(1)-6,h:RS*2+8,col:"rgba(63,185,80,0.07)"},
+    {y:ry(3)-6,h:RS*3+8,col:"rgba(255,157,92,0.07)"},
+    {y:ry(6)-6,h:RS*3+8,col:"rgba(227,179,65,0.07)"},
+    {y:ry(9)-6,h:RS*2+8,col:"rgba(255,123,114,0.07)"},
+    {y:ry(10)-6,h:RS+8,col:"rgba(121,192,255,0.07)"},
+    {y:ry(11)-6,h:RS*2+14,col:"rgba(86,211,100,0.07)"},
+  ];
+  bands.forEach(b=>{
+    mmCtx.fillStyle=b.col;
+    mmCtx.fillRect(offX,offY+b.y*scale,svgW*scale,b.h*scale);
+  });
+
+  // Draw nodes as dots
+  NODES.forEach(n=>{
+    const c=CAT[n.cat]||CAT.panca;
+    mmCtx.fillStyle=c.stroke;
+    const nx=offX+(n.x+NW/2)*scale;
+    const ny=offY+(n.y+NH/2)*scale;
+    mmCtx.beginPath(); mmCtx.arc(nx,ny,2,0,Math.PI*2); mmCtx.fill();
+  });
+
+  // Store for viewport calc
+  mmCanvas._svgW=svgW; mmCanvas._svgH=svgH;
+  mmCanvas._scale=scale; mmCanvas._offX=offX; mmCanvas._offY=offY;
+  updateMinimapViewport();
+}
+
+function updateMinimapViewport(){
+  const svgW=mmCanvas._svgW, svgH=mmCanvas._svgH;
+  const scale=mmCanvas._scale, offX=mmCanvas._offX, offY=mmCanvas._offY;
+  if(!svgW) return;
+  const vp=document.getElementById("minimap-viewport");
+  const viewW=wrap.offsetWidth/sc, viewH=wrap.offsetHeight/sc;
+  const left=offX+(-vx/sc)*scale;
+  const top=offY+(-vy/sc)*scale;
+  const w=viewW*scale, h=viewH*scale;
+  vp.style.left=Math.max(0,left)+"px";
+  vp.style.top=Math.max(0,top)+"px";
+  vp.style.width=Math.min(MM_W,w)+"px";
+  vp.style.height=Math.min(MM_H,h)+"px";
+}
+
+document.getElementById("minimap").addEventListener("click",resetView);
+
+build();
+resetView();
+</script>
+</body>
+</html>
